@@ -10,9 +10,8 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -20,17 +19,46 @@ import negocio.Servicio;
 
 /**
  *
- * @author ricardotoledo
+ * @author Administrador
  */
+@WebServlet(name = "Tarea_1", urlPatterns = {"/Tarea_1"})
 public class Tarea extends HttpServlet {
 
+    /**
+     * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
+     * methods.
+     *
+     * @param request servlet request
+     * @param response servlet response
+     * @throws ServletException if a servlet-specific error occurs
+     * @throws IOException if an I/O error occurs
+     */
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         response.setContentType("text/html;charset=UTF-8");
         try (PrintWriter out = response.getWriter()) {
-            Coneccion con = new Coneccion();
+           Coneccion con = new Coneccion();
             if (request.getParameter("servicio_id") != null) {
                 String servicio_id=request.getParameter("servicio_id");
+                con.setConsulta("select * from Unidades where servicio_id='"+servicio_id+"'");
+                ArrayList lista = new ArrayList();
+                try {
+                    while (con.getResultado().next()) {
+                        Servicio serv = new Servicio();
+                        serv.setServicio_id(con.getResultado().getInt("servicio_id"));
+                        serv.setNombre(con.getResultado().getString("nombre"));
+                        serv.setEstado(con.getResultado().getString("estado"));
+                        lista.add(serv);
+                    }
+                } catch (SQLException ex) {
+                }
+                String json = new Gson().toJson(lista);
+                response.setContentType("application/json");
+                response.setCharacterEncoding("UTF-8");
+                response.getWriter().write(json);
+            }
+            else if (request.getParameter("unidad_id") != null) {
+                String servicio_id=request.getParameter("unidad_id");
                 con.setConsulta("select * from Unidades where servicio_id='"+servicio_id+"'");
                 ArrayList lista = new ArrayList();
                 try {
